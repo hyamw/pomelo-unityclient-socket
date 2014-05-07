@@ -103,9 +103,14 @@ namespace Pomelo.DotNetClient
 			if (disposing) {
 				// free managed resources
 				this.protocol.close();
-				this.socket.Shutdown(SocketShutdown.Both);
-				this.socket.Close();
-				this.disposed = true;
+
+                try
+                {
+                    this.socket.Shutdown(SocketShutdown.Both);
+                    this.socket.Close();
+                    this.disposed = true;
+                }
+                catch (SocketException) { }
 
 				//Call disconnect callback
 				eventManager.InvokeOnEvent(EVENT_DISCONNECT, null);
