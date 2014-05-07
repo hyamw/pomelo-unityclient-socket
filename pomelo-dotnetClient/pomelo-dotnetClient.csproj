@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -9,6 +9,8 @@
     <OutputType>Library</OutputType>
     <RootNamespace>pomelodotnetClient</RootNamespace>
     <AssemblyName>pomelo-dotnetClient</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
@@ -37,10 +39,7 @@
     </Reference>
     <Reference Include="System" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="src\" />
-    <Folder Include="src\client\test\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Compile Include="src\protobuf\Decoder.cs" />
     <Compile Include="src\protobuf\Encoder.cs" />
