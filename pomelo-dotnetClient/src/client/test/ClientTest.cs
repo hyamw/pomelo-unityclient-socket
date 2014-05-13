@@ -8,20 +8,28 @@ namespace Pomelo.DotNetClient.Test
 		public static PomeloClient pc = null;
 
 		public static void loginTest(string host, int port){
-			pc = new PomeloClient(host, port);
-			pc.on (PomeloClient.EVENT_DISCONNECT, onDisconnect);
+			pc = new PomeloClient();
+            pc.init(host, port, (success) =>
+            {
+                if (success)
+                {
+                    pc.on(PomeloClient.EVENT_DISCONNECT, onDisconnect);
 
-			pc.connect(null, data=>{
+                    pc.connect(null, data =>
+                    {
 
-				Console.WriteLine("on data back" + data.ToString());
-				JsonObject msg  = new JsonObject();
-				msg["uid"] = 111;
-				pc.request("gate.gateHandler.queryEntry", msg, OnQuery);
-			});
+                        Console.WriteLine("on data back" + data.ToString());
+                        JsonObject msg = new JsonObject();
+                        msg["uid"] = 111;
+                        pc.request("gate.gateHandler.queryEntry", msg, OnQuery);
+                    });
 
-			while(true){
-				System.Threading.Thread.Sleep(100);
-			};
+                    while (true)
+                    {
+                        System.Threading.Thread.Sleep(100);
+                    };
+                }
+            });
 		}
 
 		public static void OnQuery(JsonObject result){
@@ -30,19 +38,26 @@ namespace Pomelo.DotNetClient.Test
 				
 				string host = (string)result["host"];
 				int port = Convert.ToInt32(result["port"]);
-				pc = new PomeloClient(host, port);
-				pc.connect(null, (data)=>{
-					JsonObject userMessage = new JsonObject();
-					Console.WriteLine("on connect to connector!");
-					pc.on(PomeloClient.EVENT_DISCONNECT, onDisconnect);
+				pc = new PomeloClient();
+                pc.init(host, port, (success) =>
+                {
+                    if (success)
+                    {
+                        pc.connect(null, (data) =>
+                        {
+                            JsonObject userMessage = new JsonObject();
+                            Console.WriteLine("on connect to connector!");
+                            pc.on(PomeloClient.EVENT_DISCONNECT, onDisconnect);
 
-					//Login
-					JsonObject msg  = new JsonObject();
-					msg["username"] = "test";
-					msg["rid"] = "pomelo";
+                            //Login
+                            JsonObject msg = new JsonObject();
+                            msg["username"] = "test";
+                            msg["rid"] = "pomelo";
 
-					pc.request("connector.entryHandler.enter", msg, OnEnter); 
-				});	
+                            pc.request("connector.entryHandler.enter", msg, OnEnter);
+                        });
+                    }
+                });
 			}
 		}
 

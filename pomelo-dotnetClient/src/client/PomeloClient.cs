@@ -19,39 +19,59 @@ namespace Pomelo.DotNetClient
 		private Protocol protocol;
 		private bool disposed = false;
 		private uint reqId = 1;
+
+        private bool inited = false;
 		
-		public PomeloClient(string host, int port) {
-			this.eventManager = new EventManager();
-			initClient(host, port);
-			this.protocol = new Protocol(this, socket);
+		public PomeloClient() {
 		}
 
-		private void initClient(string host, int port) {
-			this.socket=new Socket(AddressFamily.InterNetwork,SocketType.Stream,ProtocolType.Tcp);
-	        IPEndPoint ie=new IPEndPoint(IPAddress.Parse(host), port);
-	        try {
-	            this.socket.Connect(ie);
-	        }
-	        catch (SocketException e) {
-	            Console.WriteLine(String.Format("unable to connect to server: {0}", e.ToString()));
-	            return;
-	        }
-		}
-		
+        public void init(string host, int port, Action<bool> onConnected) {
+            this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            IPEndPoint ie = new IPEndPoint(IPAddress.Parse(host), port);
+
+            socket.BeginConnect(ie, new AsyncCallback((result) =>
+            {
+                try
+                {
+                    this.socket.EndConnect(result);
+
+                    if (onConnected != null) onConnected(true);
+
+                    this.protocol = new Protocol(this, this.socket);
+                    this.eventManager = new EventManager();
+
+                    inited = true;
+                }
+                catch (SocketException e)
+                {
+                    Console.WriteLine(String.Format("unable to connect to server: {0}", e.ToString()));
+                    this.socket = null;
+
+                    if (onConnected != null) onConnected(false);
+                }
+            }), this.socket);
+        }
+
 		public void connect(){
+            if (!inited) return;
 			protocol.start(null, null);
 		}
 		
 		public void connect(JsonObject user){
-			protocol.start(user, null);
+            if (!inited) return;
+            protocol.start(user, null);
 		}
 		
 		public void connect(Action<JsonObject> handshakeCallback){
-			protocol.start(null, handshakeCallback);
+            if (!inited) return;
+            protocol.start(null, handshakeCallback);
 		}
 		
 		public bool connect(JsonObject user, Action<JsonObject> handshakeCallback){
-			try{
+            if (!inited) return false;
+
+            try
+            {
 				protocol.start(user, handshakeCallback);
 				return true;
 			}catch(Exception e){
@@ -65,18 +85,21 @@ namespace Pomelo.DotNetClient
 		}
 		
 		public void request(string route, JsonObject msg, Action<JsonObject> action){
-			this.eventManager.AddCallBack(reqId, action);
+            if (!inited) return;
+            this.eventManager.AddCallBack(reqId, action);
 			protocol.send (route, reqId, msg);
 
 			reqId++;
 		}
 		
 		public void notify(string route, JsonObject msg){
-			protocol.send (route, msg);
+            if (!inited) return;
+            protocol.send(route, msg);
 		}
 		
 		public void on(string eventName, Action<JsonObject> action){
-			eventManager.AddOnEvent(eventName, action);
+            if (!inited) return;
+            eventManager.AddOnEvent(eventName, action);
 		}
 
 		internal void processMessage(Message msg){
@@ -88,7 +111,7 @@ namespace Pomelo.DotNetClient
 		}
 
 		public void disconnect(){
-			Dispose ();
+            Dispose();
 		}
 
 		public void Dispose() {
@@ -98,7 +121,8 @@ namespace Pomelo.DotNetClient
 
 		// The bulk of the clean-up code 
 		protected virtual void Dispose(bool disposing) {
-			if(this.disposed) return;
+            if (!inited) return;
+            if (this.disposed) return;
 
 			if (disposing) {
 				// free managed resources
