@@ -31,6 +31,7 @@ namespace Pomelo.DotNetClient
 		internal void invokeCallback(JsonObject data){
 			//Invoke the handshake callback
 			if(callback != null) callback.Invoke(data);
+            this.callback = null;
 		}
 
 		public void ack(){

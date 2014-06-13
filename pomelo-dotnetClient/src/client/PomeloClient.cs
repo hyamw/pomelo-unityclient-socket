@@ -35,12 +35,12 @@ namespace Pomelo.DotNetClient
                 {
                     this.socket.EndConnect(result);
 
-                    if (onConnected != null) onConnected(true);
-
                     this.protocol = new Protocol(this, this.socket);
                     this.eventManager = new EventManager();
 
                     inited = true;
+
+                    if (onConnected != null) onConnected(true);
                 }
                 catch (SocketException e)
                 {
