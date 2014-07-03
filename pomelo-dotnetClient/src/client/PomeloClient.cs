@@ -132,9 +132,9 @@ namespace Pomelo.DotNetClient
                 {
                     this.socket.Shutdown(SocketShutdown.Both);
                     this.socket.Close();
-                    this.disposed = true;
                 }
                 catch (SocketException) { }
+                finally { this.disposed = true; }
 
 				//Call disconnect callback
 				eventManager.InvokeOnEvent(EVENT_DISCONNECT, null);
