@@ -53,53 +53,69 @@ namespace Pomelo.DotNetClient
         }
 
 		public void connect(){
-            if (!inited) return;
-			protocol.start(null, null);
+            this.connect(null, null);
 		}
 		
 		public void connect(JsonObject user){
-            if (!inited) return;
-            protocol.start(user, null);
+            this.connect(user, null);
 		}
 		
-		public void connect(Action<JsonObject> handshakeCallback){
-            if (!inited) return;
-            protocol.start(null, handshakeCallback);
+		public void connect(Action<bool, JsonObject> handshakeCallback){
+            this.connect(null, handshakeCallback);
 		}
 		
-		public bool connect(JsonObject user, Action<JsonObject> handshakeCallback){
-            if (!inited) return false;
+		public void connect(JsonObject user, Action<bool, JsonObject> handshakeCallback){
+            if (!inited)
+            {
+                handshakeCallback(false, null);
+                return;
+            }
 
             try
             {
-				protocol.start(user, handshakeCallback);
-				return true;
-			}catch(Exception e){
+                protocol.start(user, (obj) => { handshakeCallback(true, obj); });
+			}
+            catch(Exception e)
+            {
 				Console.WriteLine(e.ToString());
-				return false;
+                handshakeCallback(false, null);
 			}
 		}
 
-		public void request(string route, Action<JsonObject> action){
+		public void request(string route, Action<bool, JsonObject> action){
 			this.request(route, new JsonObject(), action);
 		}
-		
-		public void request(string route, JsonObject msg, Action<JsonObject> action){
-            if (!inited) return;
-            this.eventManager.AddCallBack(reqId, action);
+
+        public void request(string route, JsonObject msg, Action<bool, JsonObject> action)
+        {
+            if (!inited)
+            {
+                action(false, null);
+                return;
+            }
+
+            this.eventManager.AddCallBack(reqId, (obj) => { action(true, obj); });
 			protocol.send (route, reqId, msg);
 
 			reqId++;
 		}
 		
-		public void notify(string route, JsonObject msg){
-            if (!inited) return;
+		public bool notify(string route, JsonObject msg){
+            if (!inited) return false;
+
             protocol.send(route, msg);
+
+            return true;
 		}
 		
-		public void on(string eventName, Action<JsonObject> action){
-            if (!inited) return;
-            eventManager.AddOnEvent(eventName, action);
+		public void on(string eventName, Action<bool, JsonObject> action){
+            if (!inited)
+            {
+                action(false, null);
+                return;
+            }
+
+            eventManager.AddOnEvent(eventName, (obj) => { action(true, obj); });
 		}
 
 		internal void processMessage(Message msg){
