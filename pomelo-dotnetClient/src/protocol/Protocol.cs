@@ -92,6 +92,7 @@ namespace Pomelo.DotNetClient
 				pc.processMessage(messageProtocol.decode (pkg.body));
 			}else if (pkg.type == PackageType.PKG_KICK) {
 				this.close();
+                pc.getEventManger().InvokeOnEvent(PomeloClient.EVENT_KICK, null);
 			}
 		}
 		
